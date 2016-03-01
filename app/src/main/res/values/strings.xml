@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Stumble</string>
+    <string name="title_activity_active_user">ActiveUserActivity</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="register_button">Register</string>
+    <string name="login_button">Login</string>
+    <string name="conferm_register_button">Register</string>
+</resources>
