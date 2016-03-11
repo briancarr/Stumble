@@ -23,7 +23,7 @@ public class ActiveUserActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent mapIntent = new Intent(getApplicationContext(), MapsActivity.class);
+                Intent mapIntent = new Intent(getApplicationContext(), AddNewStreamActivity.class);
                 startActivity(mapIntent);
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();

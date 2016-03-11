@@ -46,7 +46,7 @@
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/editText2"
+            android:id="@+id/location_editText"
             android:layout_weight="0.5"
             android:background="@drawable/rounded_corners"
             android:minHeight="40dp"

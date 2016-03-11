@@ -14,6 +14,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.firebase.client.Firebase;
 import com.stumbleapp.me.stumble.R;
 
 public class LoginActivity extends AppCompatActivity {
@@ -31,6 +32,9 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         getSupportActionBar().hide();
+
+        //Inintialise FireBase
+        Firebase.setAndroidContext(this);
 
         Window window = this.getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -54,7 +58,7 @@ public class LoginActivity extends AppCompatActivity {
                 _password = pass.getText().toString();
 
                 Log.d("Login", "username: " + _username + " Password: " + _password);
-                //login(_username, _password);
+                User.login(_username, _password);
                 Intent intent = new Intent(getApplicationContext(), ActiveUserActivity.class);
                 startActivity(intent);
 
