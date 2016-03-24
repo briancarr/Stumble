@@ -11,7 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.firebase.client.Firebase;
+//import com.firebase.client.Firebase;
 import com.stumbleapp.me.stumble.R;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -24,7 +24,7 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText pass_confirmation;
     private EditText email;
     static Context baseContext;
-    Firebase myFirebaseRef;
+    //Firebase myFirebaseRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +32,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         //Reference to firebase database
-        myFirebaseRef = new Firebase("https://projecttest.firebaseio.com/");
+       // myFirebaseRef = new Firebase("https://projecttest.firebaseio.com/");
 
         Button register = (Button) findViewById(R.id.conferm_register_button);
 
@@ -54,7 +54,7 @@ public class RegisterActivity extends AppCompatActivity {
 
                 if(_password == _password_confirmation) {
                     //Create the user
-                    User.register(_username, _password, _email);
+                    //User.register(_username, _password, _email);
                 }else{
                     pass.setBackground(Drawable.createFromPath("@drawable/rounded_corner_error"));
                 }
