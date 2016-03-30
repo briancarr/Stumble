@@ -1,18 +1,23 @@
 package com.stumbleapp.stumble;
 
 import android.app.AlertDialog;
-import android.content.Context;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-//import com.firebase.client.Firebase;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.stumbleapp.me.stumble.R;
+
+import java.util.Map;
+
+//import com.firebase.client.Firebase;
 
 public class RegisterActivity extends AppCompatActivity {
     private String _username = "";
@@ -23,20 +28,20 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText pass;
     private EditText pass_confirmation;
     private EditText email;
-    static Context baseContext;
-    //Firebase myFirebaseRef;
+    private ProgressDialog pDialog;
+    JSONParser jsonParser = new JSONParser();
+
+    private static String url_create_stream = "http://192.168.1.14/my-site/registerUser.php";
+
+    Firebase fb = new Firebase("https://projecttest.firebaseio.com/");
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
-        //Reference to firebase database
-       // myFirebaseRef = new Firebase("https://projecttest.firebaseio.com/");
-
         Button register = (Button) findViewById(R.id.conferm_register_button);
-
-
 
         user = (EditText) findViewById(R.id.register_username_editText);
         pass = (EditText) findViewById(R.id.register_password_editText);
@@ -52,15 +57,23 @@ public class RegisterActivity extends AppCompatActivity {
                 _password_confirmation = pass_confirmation.getText().toString();
                 _email = email.getText().toString();
 
-                if(_password == _password_confirmation) {
+                if (_password == _password_confirmation) {
                     //Create the user
-                    //User.register(_username, _password, _email);
-                }else{
-                    pass.setBackground(Drawable.createFromPath("@drawable/rounded_corner_error"));
+                    login(_username, _password);
+
+                } else {
+                    pass.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
                 }
-                dialog();
+                //dialog();
 
 
+            }
+        });
+
+        pass.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                pass.getBackground().clearColorFilter();
             }
         });
     }
@@ -73,10 +86,41 @@ public class RegisterActivity extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                        startActivity(intent);
+                       // Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                       // startActivity(intent);
                     }
                 });
         alertDialog.show();
     }
+
+    public String get_username() {
+        return _username;
+    }
+
+    public String get_password() {
+        return _password;
+    }
+
+    public String get_password_confirmation() {
+        return _password_confirmation;
+    }
+
+    public String get_email() {
+        return _email;
+    }
+
+    public void login(String... params){
+        fb.createUser(params[0], params[1 ], new Firebase.ValueResultHandler<Map<String, Object>>() {
+            @Override
+            public void onSuccess(Map<String, Object> result) {
+                System.out.println("Successfully created user account with uid: " + result.get("uid"));
+            }
+            @Override
+            public void onError(FirebaseError firebaseError) {
+                // there was an error
+            }
+        });
+    }
+
+
 }

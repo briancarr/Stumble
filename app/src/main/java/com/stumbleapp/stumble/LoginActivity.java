@@ -3,7 +3,9 @@ package com.stumbleapp.stumble;
 import android.app.DialogFragment;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -14,8 +16,13 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-//import com.firebase.client.Firebase;
+import com.firebase.client.AuthData;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.stumbleapp.me.stumble.R;
+
+import java.io.IOException;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -27,14 +34,21 @@ public class LoginActivity extends AppCompatActivity {
 
     DialogFragment newFragment;
 
+    GoogleCloudMessaging gcm;
+    String regid;
+    String PROJECT_NUMBER = "816514718419";
+    private String url = "http://192.168.1.14/my-site/login.php";
+
+    Firebase fb;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         getSupportActionBar().hide();
 
-        //Inintialise FireBase
-        //Firebase.setAndroidContext(this);
+        Firebase.setAndroidContext(this);
+        fb = new Firebase("https://projecttest.firebaseio.com/");
 
         Window window = this.getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -45,6 +59,7 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_login);
 
+        getRegId();
 
         user = (EditText) findViewById(R.id.username_editText);
         pass = (EditText) findViewById(R.id.password_editText);
@@ -57,13 +72,18 @@ public class LoginActivity extends AppCompatActivity {
                 _username = user.getText().toString();
                 _password = pass.getText().toString();
 
-                Log.d("Login", "username: " + _username + " Password: " + _password);
-                //User.login(_username, _password);
-                Intent intent = new Intent(getApplicationContext(), ActiveUserActivity.class);
-                startActivity(intent);
+                fb.authWithPassword(_username, _password, new Firebase.AuthResultHandler() {
+                    @Override
+                    public void onAuthenticated(AuthData authData) {
+                        System.out.println("User ID: " + authData.getUid() + ", Provider: " + authData.getProvider());
+                        Intent intent = new Intent(getApplicationContext(), ActiveUserActivity.class);
+                        startActivity(intent);
+                    }
+                    @Override
+                    public void onAuthenticationError(FirebaseError firebaseError) {
 
-                //showDialog();
-
+                    }
+                });
             }
         });
 
@@ -79,13 +99,53 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    public void login(String username, String password){
-        if(username.equals(null) && password.equals(null)) {
-            //...
-            return;
-        }else{
+    public void getRegId(){
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+                String msg = "";
+                try {
+                    if (gcm == null) {
+                        gcm = GoogleCloudMessaging.getInstance(getApplicationContext());
+                    }
+                    regid = gcm.register(PROJECT_NUMBER);
+                    msg = "Device registered, registration ID=" + regid;
+                    Log.i("GCM",  msg);
 
-        }
+                } catch (IOException ex) {
+                    msg = "Error :" + ex.getMessage();
+
+                }
+                return msg;
+            }
+
+            @Override
+            protected void onPostExecute(String msg) {
+                //etRegId.setText(msg + "\n");
+            }
+        }.execute(null, null, null);
+    }
+
+    public void login(String username, String password){
+        final JSONParser login = new JSONParser();
+        final ContentValues values = new ContentValues();
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... params) {
+
+                values.put("username", params[0].toString());
+                values.put("password", params[1].toString());
+                String msg = "";
+                login.makeHttpRequest(url,"POST",values);
+
+                return msg;
+            }
+
+            @Override
+            protected void onPostExecute(String msg) {
+
+            }
+        }.execute(null, null, null);
     }
 
     public void showDialog(){

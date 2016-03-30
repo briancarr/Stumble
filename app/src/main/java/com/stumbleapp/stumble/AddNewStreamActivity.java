@@ -164,6 +164,7 @@ public class AddNewStreamActivity extends AppCompatActivity {
             //Check result and if not null launch intent
             if(result != "") {
                 Intent intent = new Intent(AddNewStreamActivity.this, StreamActivity.class);
+                intent.putExtra(Intent.EXTRA_TEXT,createStreamURI(mName));
                 startActivity(intent);
             }
         }

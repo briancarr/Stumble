@@ -35,20 +35,27 @@ public class JSONParser {
         HttpURLConnection connection;
         OutputStreamWriter request = null;
 
-        String _name = values.getAsString("name");
-        String _location = values.getAsString("location");
-        String _url = values.getAsString("url");
+        String parameters = "";
+
+        for (String key : values.keySet()) {
+            String myKey = key;
+            parameters = parameters + myKey +"=" +values.get(key)+"?";
+
+        }
+        Log.i("Params",parameters);
+//        String _name = values.getAsString("name");
+//        String _location = values.getAsString("location");
+//        String _url = values.getAsString("url");
 
         URL url = null;
         String response = null;
-        String parameters = "name=" + _name + "&location=" + _location +"&url=" + _url;
 
         try {
             url = new URL(s_url);
             connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setRequestMethod("POST");
+            connection.setRequestMethod(method);
 
             request = new OutputStreamWriter(connection.getOutputStream());
             request.write(parameters);
@@ -68,8 +75,6 @@ public class JSONParser {
 
             isr.close();
             reader.close();
-
-
 
         } catch (IOException e) {
             // Error
