@@ -3,10 +3,12 @@ package com.stumbleapp.stumble;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -42,31 +44,30 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.activity_register);
 
         Button register = (Button) findViewById(R.id.conferm_register_button);
-
-        user = (EditText) findViewById(R.id.register_username_editText);
+        email = (EditText) findViewById(R.id.register_email_editText);
         pass = (EditText) findViewById(R.id.register_password_editText);
         pass_confirmation = (EditText) findViewById(R.id.register_password_conferm_editText);
-        email = (EditText) findViewById(R.id.email_editText);
 
         register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                _username = user.getText().toString();
+                _email = email.getText().toString();
                 _password = pass.getText().toString();
                 _password_confirmation = pass_confirmation.getText().toString();
-                _email = email.getText().toString();
 
-                if (_password == _password_confirmation) {
+
+                //Basic error check
+                Log.i("pass",_password);
+                Log.i("pass Confirmation", _password_confirmation);
+                if (_password.equals(_password_confirmation)) {
                     //Create the user
-                    login(_username, _password);
+                    registerUser(_email, _password);
 
                 } else {
                     pass.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
+                    pass_confirmation.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
                 }
-                //dialog();
-
-
             }
         });
 
@@ -74,20 +75,41 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 pass.getBackground().clearColorFilter();
+                pass_confirmation.getBackground().clearColorFilter();
+            }
+        });
+
+        pass_confirmation.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                pass.getBackground().clearColorFilter();
+                pass_confirmation.getBackground().clearColorFilter();
             }
         });
     }
 
     public void dialog(){
         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-        alertDialog.setTitle("Register Successfull");
-        alertDialog.setMessage("Thank you for registeringn.");
+        alertDialog.setTitle("Register Successful");
+        alertDialog.setMessage("Thank you for registering.");
         alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Login",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.dismiss();
-                       // Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                       // startActivity(intent);
+                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                        startActivity(intent);
+                    }
+                });
+        alertDialog.show();
+    }
+    public void errorDialog(){
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setTitle("Register Unsuccessful");
+        alertDialog.setMessage("There was a problem with the registration, Please Try Again Later.");
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "Close",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
                     }
                 });
         alertDialog.show();
@@ -109,15 +131,16 @@ public class RegisterActivity extends AppCompatActivity {
         return _email;
     }
 
-    public void login(String... params){
+    public void registerUser(String... params){
         fb.createUser(params[0], params[1 ], new Firebase.ValueResultHandler<Map<String, Object>>() {
             @Override
             public void onSuccess(Map<String, Object> result) {
                 System.out.println("Successfully created user account with uid: " + result.get("uid"));
+                dialog();
             }
             @Override
             public void onError(FirebaseError firebaseError) {
-                // there was an error
+                errorDialog();
             }
         });
     }

@@ -15,7 +15,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     //Setup table parameters
     public static final String TABLE_NAME = "stream_table";
-    public static final String COL_1 = "ID";
+    public static final String COL_1 = "_id";
     public static final String COL_2 = "NAME";
     public static final String COL_3 = "LOCATION";
     public static final String COL_4 = "URI";

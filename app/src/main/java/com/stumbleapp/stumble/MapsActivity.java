@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -26,8 +28,10 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.stumbleapp.me.stumble.R;
 
+import java.io.IOException;
 import java.text.BreakIterator;
 import java.util.List;
+import java.util.Locale;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -49,6 +53,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean clicked = false;
     LatLng latLng = null;
     String lat;
+
+    List<Address> address;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +130,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mOnClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
+                try {
+                    address = geocoder.getFromLocation(latLng.latitude,latLng.longitude,1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 Toast.makeText(getApplicationContext(), lat, Toast.LENGTH_LONG).show();
                 //Send back latlng to addStream activity
                 locationInfo();
@@ -134,7 +148,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void locationInfo() {
         Intent intent = new Intent();
-        intent.putExtra("Location", lat);
+        intent.putExtra("Address", address.get(0).getAddressLine(0).toString());
+        //intent.putExtra("Lng", latLng.longitude);
         setResult(RESULT_OK, intent);
         finish();
     }

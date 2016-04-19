@@ -1,10 +1,10 @@
-package com.stumbleapp.gcm;
+package com.stumbleapp.stumble;
 
 import android.Manifest;
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -12,7 +12,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
@@ -26,46 +26,78 @@ import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
 import com.stumbleapp.me.stumble.R;
-import com.stumbleapp.stumble.LoginActivity;
 
-public class GcmMessageHandler extends IntentService {
+public class MyService extends Service {
 
-    String mes;
-    private Handler handler;
+    Firebase fb = new Firebase("https://projecttest.firebaseio.com/streams");
+
+    GeoFire geoFire = new GeoFire(fb);
+    Bundle extras;
     private int mId;
-    GeoFire geoFire;
-    GeoQuery geoQuery;
-    LocationListener locationListener;
 
+    boolean notificationDisplayed = false;
 
-    public GcmMessageHandler() {
-        super("GcmMessageHandler");
+    public MyService() {
     }
 
     @Override
-    public void onCreate() {
-        // TODO Auto-generated method stub
-        super.onCreate();
-        handler = new Handler();
+    public IBinder onBind(Intent arg0) {
+        return null;
+    }
 
-        geoFire = new GeoFire(new Firebase("https://projecttest.firebaseio.com/"));
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
 
-        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
-        locationListener = new LocationListener() {
+        LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                geoQuery = geoFire.queryAtLocation(new GeoLocation(52.67, -6.29), 0.6);
+
+                //Toast.makeText(getApplicationContext(), "Location Changed", Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), ""+location.getLatitude(), Toast.LENGTH_LONG).show();
+                GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), 0.6);
+
+                geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+                    @Override
+                    public void onKeyEntered(String key, GeoLocation location) {
+                        if(!notificationDisplayed){
+                            createNotification();
+                            notificationDisplayed = true;
+                        }
+                        Log.i("Key Entered",location.toString());
+                    }
+
+                    @Override
+                    public void onKeyExited(String key) {
+                        notificationDisplayed  = false;
+                    }
+
+                    @Override
+                    public void onKeyMoved(String key, GeoLocation location) {
+
+                    }
+
+                    @Override
+                    public void onGeoQueryReady() {
+
+                    }
+
+                    @Override
+                    public void onGeoQueryError(FirebaseError error) {
+
+                    }
+                });
+
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras) {
-                geoQuery = geoFire.queryAtLocation(new GeoLocation(52.67, -6.29), 0.6);
+                ;
             }
 
             @Override
             public void onProviderEnabled(String provider) {
-                geoQuery = geoFire.queryAtLocation(new GeoLocation(52.67, -6.29), 0.6);
+
             }
 
             @Override
@@ -73,6 +105,8 @@ public class GcmMessageHandler extends IntentService {
 
             }
         };
+
+        LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -82,51 +116,33 @@ public class GcmMessageHandler extends IntentService {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            return;
+            return 0;
         }
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
 
+        return START_STICKY;
     }
+
     @Override
-    protected void onHandleIntent(Intent intent) {
-        Bundle extras = intent.getExtras();
+    public void onDestroy() {
+        super.onDestroy();
+        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_LONG).show();
+    }
 
-        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
-            @Override
-            public void onKeyEntered(String key, GeoLocation location) {
-                Log.i("Geo location ", geoQuery.getCenter().toString());
-            }
 
-            @Override
-            public void onKeyExited(String key) {
+    public  void createNotification(){
 
-            }
 
-            @Override
-            public void onKeyMoved(String key, GeoLocation location) {
-
-            }
-
-            @Override
-            public void onGeoQueryReady() {
-
-            }
-
-            @Override
-            public void onGeoQueryError(FirebaseError error) {
-
-            }
-        });
-
-        //Building the notification
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle(extras.getString("title"))
+                        .setAutoCancel(true)
+                        .setContentTitle("title")
                         .setContentText("Hello World!");
 
         mBuilder.setDefaults(Notification.DEFAULT_SOUND);
         mBuilder.setVibrate(new long[]{500,500});
+
 
         //Creates an explicit intent for the streamActivity
         //Pass the URI for the stream
@@ -144,24 +160,12 @@ public class GcmMessageHandler extends IntentService {
         PendingIntent resultPendingIntent =
                 stackBuilder.getPendingIntent(
                         0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
+                        PendingIntent.FLAG_CANCEL_CURRENT
                 );
         mBuilder.setContentIntent(resultPendingIntent);
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
         mNotificationManager.notify(mId, mBuilder.build());
-
-        GcmBroadcastReceiver.completeWakefulIntent(intent);
-
-    }
-
-    public void showToast(){
-        handler.post(new Runnable() {
-            public void run() {
-                Toast.makeText(getApplicationContext(),mes , Toast.LENGTH_LONG).show();
-            }
-        });
-
     }
 }

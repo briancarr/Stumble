@@ -63,6 +63,34 @@
             android:layout_marginLeft="4dp" />
     </LinearLayout>
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Date"
+            android:background="@drawable/button_rounded_corners"
+            android:id="@+id/date_button"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
+            android:layout_marginTop="8pdp" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Time"
+            android:background="@drawable/button_rounded_corners"
+            android:id="@+id/time_button"
+            android:layout_margin="4dp"
+            android:layout_weight="1"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

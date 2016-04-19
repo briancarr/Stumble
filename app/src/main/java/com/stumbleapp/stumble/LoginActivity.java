@@ -72,13 +72,14 @@ public class LoginActivity extends AppCompatActivity {
                 _username = user.getText().toString();
                 _password = pass.getText().toString();
 
-                fb.authWithPassword(_username, _password, new Firebase.AuthResultHandler() {
+                fb.authWithPassword("qwerty@mail.com", "qwerty1234", new Firebase.AuthResultHandler() {
                     @Override
                     public void onAuthenticated(AuthData authData) {
-                        System.out.println("User ID: " + authData.getUid() + ", Provider: " + authData.getProvider());
+                        //System.out.println("User ID: " + authData.getUid() + ", Provider: " + authData.getProvider());
                         Intent intent = new Intent(getApplicationContext(), ActiveUserActivity.class);
                         startActivity(intent);
                     }
+
                     @Override
                     public void onAuthenticationError(FirebaseError firebaseError) {
 
@@ -95,6 +96,8 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        startService(new Intent(this, MyService.class));
 
 
     }

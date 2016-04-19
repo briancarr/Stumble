@@ -13,6 +13,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
+import com.firebase.client.Firebase;
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
 import com.stumbleapp.me.stumble.R;
 
 public class AddNewStreamActivity extends AppCompatActivity {
@@ -23,6 +26,8 @@ public class AddNewStreamActivity extends AppCompatActivity {
     SQLiteDatabase db;
     String   mName;
     String  mLocation;
+    Double Lat;
+    Double Lng;
 
     private String baseDomain;
 
@@ -30,6 +35,9 @@ public class AddNewStreamActivity extends AppCompatActivity {
     private ProgressDialog pDialog;
 
     JSONParser jsonParser = new JSONParser();
+
+    Firebase fb;
+    GeoFire geoFire;
 
     // url to create new product
     private static String url_create_stream = "http://192.168.1.14/my-site/createStream.php";
@@ -43,17 +51,45 @@ public class AddNewStreamActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_new_stream);
 
-        baseDomain = "rtsp://192.168.1.19:1935/live/";
+        /**
+         * Setup references to Firebase database.
+         * The GeoFire object uses the GeoFire library with a reference
+         * to the Firebase Project.
+         */
+        fb = new Firebase("https://projecttest.firebaseio.com/streams");
+
+        //uncomment when login is reactivated
+        final String userId = fb.getAuth().getUid();
+
+        baseDomain = "rtsp://192.168.1.14:1935/live/";
 
         database = new DatabaseHelper(this);
 
         location = (EditText) findViewById(R.id.location_editText);
         name = (EditText) findViewById(R.id.stream_name_editText);
 
-        location = (EditText) findViewById(R.id.location_editText);
-        name = (EditText) findViewById(R.id.stream_name_editText);
-
         Button startStream = (Button) findViewById(R.id.start_stream_button);
+        Button date = (Button) findViewById(R.id.date_button);
+        Button time = (Button) findViewById(R.id.time_button);
+
+        date.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        time.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        /**
+         * Sets up the button to launce the map activity.
+         * Gets the selected geo point as a result.
+         */
         ImageButton mapLauncher;
         mapLauncher = (ImageButton) findViewById(R.id.imageButton);
         mapLauncher.setOnClickListener(new View.OnClickListener() {
@@ -61,26 +97,43 @@ public class AddNewStreamActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
                 startActivityForResult(intent, 1);
-
             }
-
         });
 
+
+        /**
+         * OnClick for the start stream button.
+         * This creates the Firebase database object for the new stream.
+         */
         startStream.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 mName = name.getText().toString();
                 mLocation = location.getText().toString();
-                Log.i("before createNewProduct"," done ");
-                new CreateNewProduct().execute();
-                Log.i("After createNewProduct", " done ");
-                //insert(getName(), getLocation(),createStreamURI(getName()));
+                GeoLocation loc;
+                loc = new GeoLocation(Lat, Lng);
+                geoFire = new GeoFire(fb);
+
+                Stream stream = new Stream(mName,userId,mLocation,"","","");
+                fb.push().setValue(stream);
+//
+//                Firebase streamRef = fb.child(mName);
+//
+//                streamRef.child("userId").setValue(userId);
+//                streamRef.child("StreamName").setValue(mName);
+//                streamRef.child("URI").setValue(createStreamURI(mName));
+                createGeoFence(mName + "Location", loc);
             }
         });
+
+
     }
 
-    //Returns the name entered into the "Stream Name" textbox
+    public void createGeoFence(String name, GeoLocation loc){
+        geoFire.setLocation(name, new GeoLocation(loc.latitude,loc.longitude));
+    }
+
     private String getName() {
         String nameStr = name.getText().toString();
         return nameStr;
@@ -95,8 +148,14 @@ public class AddNewStreamActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1) {
             if (resultCode == RESULT_OK) {
-                location.setText(data.getStringExtra("Location"));
-                Log.i("",""+data.getStringExtra("Location"));
+                String address = data.getStringExtra("Address");
+                //Lat = data.getDoubleExtra("Lat",0.00);
+                //Lng = data.getDoubleExtra("Lng",0.00);
+                if(address != null) {
+                    location.setText(address);
+                }
+                Log.i("Address :",address);
+                //Log.i("Lng",Lng.toString());
             }
         }
     }
@@ -109,7 +168,7 @@ public class AddNewStreamActivity extends AppCompatActivity {
     }
 
     /**
-     * Background Async Task to Create new product
+     * Background Async Task to Create new stream
      * */
     class CreateNewProduct extends AsyncTask<String, String, String> {
 
