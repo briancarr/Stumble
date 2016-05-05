@@ -19,8 +19,10 @@ import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
@@ -29,13 +31,19 @@ import com.stumbleapp.me.stumble.R;
 
 public class MyService extends Service {
 
-    Firebase fb = new Firebase("https://projecttest.firebaseio.com/streams");
+    Firebase fb = new Firebase("https://projecttest.firebaseio.com/locations");
 
     GeoFire geoFire = new GeoFire(fb);
     Bundle extras;
     private int mId;
+    private String locationKey;
 
     boolean notificationDisplayed = false;
+
+    Stream stream;
+    String streamName = null;
+
+    Firebase ref = new Firebase("https://projecttest.firebaseio.com/streams");
 
     public MyService() {
     }
@@ -61,10 +69,14 @@ public class MyService extends Service {
                     @Override
                     public void onKeyEntered(String key, GeoLocation location) {
                         if(!notificationDisplayed){
-                            createNotification();
                             notificationDisplayed = true;
+                            //key represents the user id used to create the location
+                            //pass key to notification and use to look up stream entry.
+                            locationKey = key;
+                            getStreamInfo();
                         }
                         Log.i("Key Entered",location.toString());
+                        Log.i("Key ",key);
                     }
 
                     @Override
@@ -132,13 +144,15 @@ public class MyService extends Service {
 
     public  void createNotification(){
 
+        getStreamInfo();
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_launcher)
                         .setAutoCancel(true)
-                        .setContentTitle("title")
-                        .setContentText("Hello World!");
+                        .setContentTitle("Stumble Stream")
+                        .setContentText(streamName);
+
 
         mBuilder.setDefaults(Notification.DEFAULT_SOUND);
         mBuilder.setVibrate(new long[]{500,500});
@@ -146,7 +160,12 @@ public class MyService extends Service {
 
         //Creates an explicit intent for the streamActivity
         //Pass the URI for the stream
-        Intent resultIntent = new Intent(this, LoginActivity.class);
+        Intent resultIntent = new Intent(this, PlayStreamActivity.class);
+        Log.i("Service ", locationKey);
+        resultIntent.putExtra("userID",locationKey);
+
+        resultIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
 
         // The stack builder object will contain an artificial back stack for the
         // started Activity.
@@ -154,18 +173,31 @@ public class MyService extends Service {
         // your application to the Home screen.
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(LoginActivity.class);
+        stackBuilder.addParentStack(ActiveUserActivity.class);
         // Adds the Intent that starts the Activity to the top of the stack
         stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_CANCEL_CURRENT
-                );
+
+        PendingIntent resultPendingIntent =  stackBuilder.getPendingIntent( 0,PendingIntent.FLAG_UPDATE_CURRENT);
+
         mBuilder.setContentIntent(resultPendingIntent);
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         // mId allows you to update the notification later on.
         mNotificationManager.notify(mId, mBuilder.build());
+    }
+
+    private void getStreamInfo() {
+        ref.child(locationKey).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                stream = snapshot.getValue(Stream.class);
+                streamName = stream.getName().toString();
+                createNotification();
+            }
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e("streams", "The read failed: " + firebaseError.getMessage());
+            }
+        });
     }
 }

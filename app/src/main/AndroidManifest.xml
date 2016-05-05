@@ -57,8 +57,13 @@
             android:name="com.stumbleapp.stumble.MapsActivity"
             android:label="@string/title_activity_maps"
             android:parentActivityName="com.stumbleapp.stumble.AddNewStreamActivity" />
-        <activity android:name="com.stumbleapp.stumble.StreamActivity" />
-        <activity android:name="com.stumbleapp.stumble.PlayStreamActivity" />
+
+        <activity
+            android:name="com.stumbleapp.stumble.StreamActivity"
+            />
+
+        <activity android:name="com.stumbleapp.stumble.PlayStreamActivity"
+            android:launchMode="singleTask"/>
 
         <!--             Setup for services that handlde the push notifications -->
         <receiver

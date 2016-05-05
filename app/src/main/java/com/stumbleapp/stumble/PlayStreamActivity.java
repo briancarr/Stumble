@@ -2,11 +2,10 @@ package com.stumbleapp.stumble;
 
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.Intent;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.MediaController;
 import android.widget.TextView;
@@ -25,18 +24,15 @@ public class PlayStreamActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play_stream);
+
+        //Workaround to get the onNewIntent method to run
+        PlayStreamActivity m = new PlayStreamActivity();
+        m.onNewIntent(this.getIntent());
+
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         video = (VideoView) findViewById(R.id.videoView);
-
-        Intent intent = this.getIntent();
-        if(intent.getStringExtra(Intent.EXTRA_TEXT) != null ) {
-            streamId = intent.getStringExtra(Intent.EXTRA_TEXT);
-        }
-
-        title = (TextView) findViewById(R.id.textView5);
-        title.setText(streamId);
 
         MediaController mediaController = new MediaController(PlayStreamActivity.this);
         mediaController.setAnchorView(video);
@@ -50,19 +46,50 @@ public class PlayStreamActivity extends AppCompatActivity {
         video.setLayoutParams(params);
         video.start();
 
-        video.setOnClickListener(new View.OnClickListener() {
+        video.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
-            public void onClick(View v) {
-                if(paused) {
-                    video.resume();
-                    paused = false;
-                }
-                else{
-                    video.pause();
-                    paused = true;
-                }
+            public boolean onError(MediaPlayer mp, int what, int extra) {
+
+                return false;
             }
         });
 
+//        video.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if(paused) {
+//                    video.resume();
+//                    paused = false;
+//                }
+//                else{
+//                    video.pause();
+//                    paused = true;
+//                }
+//            }
+//        });
+
     }
+
+//    private void getURL(String streamId) {
+//        Firebase stream = new Firebase("https://projecttest.firebaseio.com/streams");
+//        stream.child(streamId).addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(DataSnapshot snapshot) {
+//                Stream stream = snapshot.getValue(Stream.class);
+//                System.out.println(stream.getUrl());
+//            }
+//            @Override public void onCancelled(FirebaseError error) { }
+//        });
+//    }
+//
+//    @Override
+//    protected void onNewIntent(Intent intent) {
+//        super.onNewIntent(intent);
+//        setIntent(intent);//must store the new intent unless getIntent() will return the old one
+//        Intent data = getIntent();
+//        streamId = data.getStringExtra("userID");
+//        Log.i("UserID notification", streamId+"");
+//        getURL(streamId);
+//    }
+
 }

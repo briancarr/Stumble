@@ -126,11 +126,8 @@ public class StreamActivity extends Activity implements
         mClient.setSession(mSession);
         mClient.setCallback(this);
 
-        // Use this to force streaming with the MediaRecorder API
+        // Used to force streaming with the MediaRecorder API
         mSession.getVideoTrack().setStreamingMethod(MediaStream.MODE_MEDIARECORDER_API);
-
-        // Use this to stream over TCP, EXPERIMENTAL!
-        //mClient.setTransportMode(RtspClient.TRANSPORT_TCP);
 
         // Use this if you want the aspect ratio of the surface view to
         // respect the aspect ratio of the camera preview

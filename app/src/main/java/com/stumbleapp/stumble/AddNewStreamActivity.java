@@ -1,22 +1,29 @@
 package com.stumbleapp.stumble;
 
-import android.app.ProgressDialog;
-import android.content.ContentValues;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.TimePicker;
 
 import com.firebase.client.Firebase;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.stumbleapp.me.stumble.R;
+
+import java.util.Calendar;
 
 public class AddNewStreamActivity extends AppCompatActivity {
 
@@ -29,12 +36,18 @@ public class AddNewStreamActivity extends AppCompatActivity {
     Double Lat;
     Double Lng;
 
+    //variables for date and time picker
+    public static int _year;
+    public static int _month;
+    public static int _day;
+    public static int _hour;
+    public static int _minute;
+
+    public static TextView time;
+    public static TextView date;
+
+    //base domain for streaming server
     private String baseDomain;
-
-    // Progress Dialog
-    private ProgressDialog pDialog;
-
-    JSONParser jsonParser = new JSONParser();
 
     Firebase fb;
     GeoFire geoFire;
@@ -56,7 +69,7 @@ public class AddNewStreamActivity extends AppCompatActivity {
          * The GeoFire object uses the GeoFire library with a reference
          * to the Firebase Project.
          */
-        fb = new Firebase("https://projecttest.firebaseio.com/streams");
+        fb = new Firebase("https://projecttest.firebaseio.com/");
 
         //uncomment when login is reactivated
         final String userId = fb.getAuth().getUid();
@@ -68,21 +81,27 @@ public class AddNewStreamActivity extends AppCompatActivity {
         location = (EditText) findViewById(R.id.location_editText);
         name = (EditText) findViewById(R.id.stream_name_editText);
 
-        Button startStream = (Button) findViewById(R.id.start_stream_button);
-        Button date = (Button) findViewById(R.id.date_button);
-        Button time = (Button) findViewById(R.id.time_button);
+        time = (TextView) findViewById(R.id.time_selection_textView);
+        date = (TextView) findViewById(R.id.date_selection_textView);
+
+        final Button startStream = (Button) findViewById(R.id.start_stream_button);
+        final Button date = (Button) findViewById(R.id.date_button);
+        final Button time = (Button) findViewById(R.id.time_button);
 
         date.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                DialogFragment newFragment = new DatePickerFragment();
+                newFragment.show(getSupportFragmentManager(), "datePicker");
+                //date.append(getDate());
             }
         });
 
         time.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                DialogFragment newFragment = new TimePickerFragment();
+                newFragment.show(getSupportFragmentManager(), "timePicker");
             }
         });
 
@@ -113,23 +132,58 @@ public class AddNewStreamActivity extends AppCompatActivity {
                 mLocation = location.getText().toString();
                 GeoLocation loc;
                 loc = new GeoLocation(Lat, Lng);
-                geoFire = new GeoFire(fb);
+                geoFire = new GeoFire(fb.child("locations"));
 
-                Stream stream = new Stream(mName,userId,mLocation,"","","");
-                fb.push().setValue(stream);
-//
-//                Firebase streamRef = fb.child(mName);
-//
-//                streamRef.child("userId").setValue(userId);
-//                streamRef.child("StreamName").setValue(mName);
-//                streamRef.child("URI").setValue(createStreamURI(mName));
-                createGeoFence(mName + "Location", loc);
+                // Constructor Stream(String name, String user, String location, String url, String date, String time)
+                Stream stream = new Stream(mName,userId,mLocation,createStreamURI(),getDate(),getTime());
+                fb = fb.child("streams").child(stream.getUser());//.push().setValue(stream);
+                fb.child("name").setValue(stream.getName());
+                fb.child("location").setValue(stream.getLocation());
+                fb.child("url").setValue(stream.getUrl());
+                fb.child("date").setValue(stream.getDate());
+                fb.child("time").setValue(stream.getTime());
+                fb.child("user").setValue(stream.getUser());
+                createGeoFence(userId, loc);
             }
         });
 
 
     }
 
+    private static String getTime() {
+        String time = null;
+        if(_minute < 10){
+            time = _hour + ":" +"0"+ _minute;
+        }else {
+            time = _hour + ":" + _minute;
+        }
+        return  time;
+    }
+
+    private static String getDate() {
+        String date = _day +"/"+_month+"/"+_year;
+        return  date;
+    }
+
+    /**
+     * Appends the date and time
+     * to the textviews within the view.
+     */
+    public static void appendTime(){
+        time.setText(getTime());
+    }
+
+    public static void appendDate(){
+        date.setText(getDate());
+    }
+
+    /**
+     * Creates the geofence using the
+     * returned latitude and longitude
+     * from the MapsActivity.
+     * @param name
+     * @param loc
+     */
     public void createGeoFence(String name, GeoLocation loc){
         geoFire.setLocation(name, new GeoLocation(loc.latitude,loc.longitude));
     }
@@ -149,8 +203,8 @@ public class AddNewStreamActivity extends AppCompatActivity {
         if (requestCode == 1) {
             if (resultCode == RESULT_OK) {
                 String address = data.getStringExtra("Address");
-                //Lat = data.getDoubleExtra("Lat",0.00);
-                //Lng = data.getDoubleExtra("Lng",0.00);
+                Lat = data.getDoubleExtra("Lat",0.00);
+                Lng = data.getDoubleExtra("Lng",0.00);
                 if(address != null) {
                     location.setText(address);
                 }
@@ -160,74 +214,61 @@ public class AddNewStreamActivity extends AppCompatActivity {
         }
     }
 
-
-    public String createStreamURI(String name){
+    //Returns the URL for the stream using the name entered.
+    public String createStreamURI(){
         String URI;
-        URI  = baseDomain + name;
+        URI  = baseDomain + mName;
         return URI;
     }
 
+
     /**
-     * Background Async Task to Create new stream
-     * */
-    class CreateNewProduct extends AsyncTask<String, String, String> {
+     * Classes for date and time selection fragments
+     */
+    public static class TimePickerFragment extends DialogFragment
+            implements TimePickerDialog.OnTimeSetListener {
 
-        /**
-         * Before starting background thread Show Progress Dialog
-         * */
         @Override
-        protected void onPreExecute() {
-            Log.i("on pre execute", " done ");
-            super.onPreExecute();
-            pDialog = new ProgressDialog(AddNewStreamActivity.this);
-            pDialog.setMessage("Creating Product..");
-            pDialog.setIndeterminate(false);
-            pDialog.setCancelable(true);
-            pDialog.show();
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the current time as the default values for the picker
+            final Calendar c = Calendar.getInstance();
+            int hour = c.get(Calendar.HOUR_OF_DAY);
+            int minute = c.get(Calendar.MINUTE);
+
+            // Create a new instance of TimePickerDialog and return it
+            return new TimePickerDialog(getActivity(), this, hour, minute,
+                    DateFormat.is24HourFormat(getActivity()));
         }
 
-        /**
-         * Creating product
-         * */
-        protected String doInBackground(String... args) {
+        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+            _hour = hourOfDay;
+            _minute = minute;
+            appendTime();
+        }
+    }
 
-            // Building Parameters
-            ContentValues values = new ContentValues();
+    public static class DatePickerFragment extends DialogFragment
+            implements DatePickerDialog.OnDateSetListener {
 
-            if(getName() != null && getLocation() != null) {
-                /**
-                 * Add values to ContentValues object
-                 */
-                values.put("name", getName());
-                values.put("location", getLocation());
-                values.put("url", createStreamURI(mName).toString());
 
-                /**
-                 * Pass variables to jsonparser for POST request.
-                 * Returns String result from database server.
-                 * Result gets passed to onPostExecute.
-                 */
-                return jsonParser.makeHttpRequest(url_create_stream, "POST", values);
-            }else{
-                return null;
-            }
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            // Use the current date as the default date in the picker
+            final Calendar c = Calendar.getInstance();
+            int year = c.get(Calendar.YEAR);
+            int month = c.get(Calendar.MONTH);
+            int day = c.get(Calendar.DAY_OF_MONTH);
+
+            // Create a new instance of DatePickerDialog and return it
+            return new DatePickerDialog(getActivity(), this, year, month, day);
         }
 
-        /**
-         * After completing background task Dismiss the progress dialog
-         * **/
-        protected void onPostExecute(String result) {
-            // dismiss the dialog once done
-            pDialog.dismiss();
-            Log.i("on post execute", result);
-            //Check result and if not null launch intent
-            if(result != "") {
-                Intent intent = new Intent(AddNewStreamActivity.this, StreamActivity.class);
-                intent.putExtra(Intent.EXTRA_TEXT,createStreamURI(mName));
-                startActivity(intent);
-            }
+        public void onDateSet(DatePicker view, int year, int month, int day) {
+            _year = year;
+            _month = month;
+            _day = day;
+            appendDate();
         }
-
     }
 
 }

@@ -61,9 +61,8 @@ public class ActiveUserActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 for (DataSnapshot msgSnapshot: snapshot.getChildren()) {
                     Stream stream = msgSnapshot.getValue(Stream.class);
-                    //myDb.insertRow(stream.getName() + nextImageIndex, stream.getUser(), stream.getLocation());
-                    Log.i("name", stream.getName());
-                    Log.i("user",stream.getUser());
+                    //public long insertRow(String name, String userID, String location, String url, String date, String time)
+                    myDb.insertRow(stream.getName(), stream.getUser(), stream.getLocation(), stream.getUrl(), stream.getDate(), stream.getTime());
                 }
             }
             @Override
@@ -92,7 +91,6 @@ public class ActiveUserActivity extends AppCompatActivity {
         SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,R.layout.list_item_streams, cursor,fromFieldNames,toViewIds);
 
         listview.setAdapter(adapter);
-
 
         //Button for adding new stream
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);

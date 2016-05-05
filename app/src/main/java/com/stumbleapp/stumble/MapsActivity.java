@@ -61,8 +61,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
 
@@ -94,12 +93,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
 
-
             @Override
             public void onMapClick(LatLng point) {
-                // TODO Auto-generated method stub
                 // Instantiates a new CircleOptions object and defines the center and radius
-
                 if (!clicked) {
                     mMap.clear();
                     CircleOptions circleOptions;
@@ -149,7 +145,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void locationInfo() {
         Intent intent = new Intent();
         intent.putExtra("Address", address.get(0).getAddressLine(0).toString());
-        //intent.putExtra("Lng", latLng.longitude);
+        intent.putExtra("Lat", latLng.latitude);
+        intent.putExtra("Lng", latLng.longitude);
         setResult(RESULT_OK, intent);
         finish();
     }

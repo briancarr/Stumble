@@ -9,18 +9,18 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.stumbleapp.stumble.PlayStreamActivity">
 
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="New Text"
-        android:id="@+id/textView5"
-        android:textSize="21dp" />
+        android:text="New Button"
+        android:id="@+id/button"
+        android:layout_alignTop="@+id/video"
+        android:layout_alignParentEnd="true" />
 
     <fragment
         android:name="com.stumbleapp.stumble.VideoFragment"
         android:id="@+id/video"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView5" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 </RelativeLayout>
