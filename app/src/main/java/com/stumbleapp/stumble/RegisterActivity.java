@@ -31,7 +31,6 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText pass_confirmation;
     private EditText email;
     private ProgressDialog pDialog;
-    JSONParser jsonParser = new JSONParser();
 
     private static String url_create_stream = "http://192.168.1.14/my-site/registerUser.php";
 
@@ -56,14 +55,12 @@ public class RegisterActivity extends AppCompatActivity {
                 _password = pass.getText().toString();
                 _password_confirmation = pass_confirmation.getText().toString();
 
-
                 //Basic error check
                 Log.i("pass",_password);
                 Log.i("pass Confirmation", _password_confirmation);
                 if (_password.equals(_password_confirmation)) {
                     //Create the user
                     registerUser(_email, _password);
-
                 } else {
                     pass.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);
                     pass_confirmation.getBackground().setColorFilter(Color.RED, PorterDuff.Mode.MULTIPLY);

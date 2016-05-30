@@ -63,7 +63,7 @@ public class StreamActivity extends Activity implements
     private ProgressBar mProgressBar;
     private Session mSession;
     private RtspClient mClient;
-    private String streamId;
+    private String streamId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +71,7 @@ public class StreamActivity extends Activity implements
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.main);
+
 
         mButtonVideo = (Button) findViewById(R.id.video);
         mButtonSave = (Button) findViewById(R.id.save);
@@ -99,14 +100,16 @@ public class StreamActivity extends Activity implements
         mButtonSettings.setOnClickListener(this);
         mButtonFlash.setTag("off");
 
+
+        //Gets the url from the parent activity
         Intent intent = this.getIntent();
-        if(intent.getStringExtra(Intent.EXTRA_TEXT) != null ) {
-            streamId = intent.getStringExtra(Intent.EXTRA_TEXT);
-        }
+        streamId = intent.getStringExtra("streamUrl");
+        Log.i("stream url",streamId);
+
 
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(StreamActivity.this);
         if (mPrefs.getString("uri", null) != null) mLayoutServerSettings.setVisibility(View.GONE);
-        mEditTextURI.setText(mPrefs.getString("uri", getString(R.string.default_stream)));
+        mEditTextURI.setText(mPrefs.getString("uri", streamId));
         mEditTextPassword.setText(mPrefs.getString("password", ""));
         mEditTextUsername.setText(mPrefs.getString("username", ""));
 
@@ -192,6 +195,20 @@ public class StreamActivity extends Activity implements
         mClient.release();
         mSession.release();
         mSurfaceView.getHolder().removeCallback(this);
+
+        /**
+         * Removing the stream data on firebase.
+         * Removes the location and the stream entries.
+         */
+//        Firebase ref = null;
+//        ref = new Firebase("https://projecttest.firebaseio.com/streams/");
+//        String user = ref.getAuth().getUid();
+//        Log.i("User ID",user);
+//        ref.child(user).removeValue();
+//
+//        ref = new Firebase("https://projecttest.firebaseio.com/locations/");
+//        Log.i("User ID",user);
+//        ref.child(user).removeValue();
     }
 
     private void selectQuality() {
@@ -229,14 +246,14 @@ public class StreamActivity extends Activity implements
             // We save the content user inputs in Shared Preferences
             SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(StreamActivity.this);
             SharedPreferences.Editor editor = mPrefs.edit();
-            editor.putString("uri", mEditTextURI.getText().toString());
+            editor.putString("uri", streamId);
             editor.putString("password", mEditTextPassword.getText().toString());
             editor.putString("username", mEditTextUsername.getText().toString());
             editor.commit();
 
             // We parse the URI written in the Editext
             Pattern uri = Pattern.compile("rtsp://(.+):(\\d*)/(.+)");
-            Matcher m = uri.matcher(mEditTextURI.getText()); m.find();
+            Matcher m = uri.matcher(streamId); m.find();
             ip = m.group(1);
             port = m.group(2);
             path = m.group(3);

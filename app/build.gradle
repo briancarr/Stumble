@@ -28,7 +28,16 @@ android {
         }
     }
 }
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+    }
+}
 
+apply plugin: 'com.neenbedankt.android-apt'
 dependencies {
     //compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
@@ -41,5 +50,13 @@ dependencies {
     compile 'com.android.support:support-v4:23.2.0'
     compile 'com.firebase:geofire:1.1.0+'
     compile 'com.firebaseui:firebase-ui:0.3.1'
+    compile 'com.paypal.sdk:paypal-android-sdk:2.14.2'
+    compile 'com.github.pedrovgs:draggablepanel:1.9'
+
+    compile 'com.squareup.picasso:picasso:2.5.2'
+
+    compile 'com.jakewharton:butterknife:8.0.1'
+    apt 'com.jakewharton:butterknife-compiler:8.0.1'
+
     apply plugin: 'com.google.gms.google-services'
 }

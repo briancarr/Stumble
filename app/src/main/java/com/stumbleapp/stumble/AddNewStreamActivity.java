@@ -74,7 +74,7 @@ public class AddNewStreamActivity extends AppCompatActivity {
         //uncomment when login is reactivated
         final String userId = fb.getAuth().getUid();
 
-        baseDomain = "rtsp://192.168.1.14:1935/live/";
+        baseDomain = "rtsp://192.168.2.5:1935/live/";
 
         database = new DatabaseHelper(this);
 
@@ -144,10 +144,22 @@ public class AddNewStreamActivity extends AppCompatActivity {
                 fb.child("time").setValue(stream.getTime());
                 fb.child("user").setValue(stream.getUser());
                 createGeoFence(userId, loc);
+
+                launchStreamView(stream);
             }
         });
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fb = new Firebase("https://projecttest.firebaseio.com/");
+    }
 
+    private void launchStreamView(Stream stream) {
+        Intent intent = new Intent(this, StreamActivity.class);
+        intent.putExtra("streamUrl",stream.getUrl());
+        startActivity(intent);
     }
 
     private static String getTime() {

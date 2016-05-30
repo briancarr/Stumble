@@ -14,13 +14,6 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    //Permissions for GCM
-    <permission
-        android:name="com.stumbleapp.me.stumble.permission.C2D_MESSAGE"
-        android:protectionLevel="signature" />
-
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <uses-permission android:name="com.stumbleapp.me.stumble.permission.C2D_MESSAGE" />
 
     <application
         android:allowBackup="true"
@@ -57,26 +50,11 @@
             android:name="com.stumbleapp.stumble.MapsActivity"
             android:label="@string/title_activity_maps"
             android:parentActivityName="com.stumbleapp.stumble.AddNewStreamActivity" />
-
+        <activity android:name="com.stumbleapp.stumble.StreamActivity" />
         <activity
-            android:name="com.stumbleapp.stumble.StreamActivity"
-            />
-
-        <activity android:name="com.stumbleapp.stumble.PlayStreamActivity"
-            android:launchMode="singleTask"/>
-
-        <!--             Setup for services that handlde the push notifications -->
-        <receiver
-            android:name="com.stumbleapp.gcm.GcmBroadcastReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND">
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-
-                <category android:name="com.hmkcode.android.gcm" />
-            </intent-filter>
-        </receiver>
-
-        <service android:name="com.stumbleapp.gcm.GcmMessageHandler" />
+            android:name="com.stumbleapp.stumble.PlayStreamActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <meta-data
             android:name="com.google.android.gms.version"
@@ -85,9 +63,9 @@
         <service
             android:name="com.stumbleapp.stumble.MyService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
 
-
+        <activity android:name="com.stumbleapp.stumble.VideoActivity"></activity>
     </application>
 
 </manifest>

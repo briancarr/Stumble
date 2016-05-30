@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
@@ -21,14 +22,18 @@ import com.stumbleapp.me.stumble.R;
 
 public class ActiveUserActivity extends AppCompatActivity {
 
-    DatabaseHelper database;
-    String Name;
-    String location;
+    //To be removed
+//    DatabaseHelper database;
+//    String Name;
+//    String location;
+//
+//    String names[];
+//    String locations[];
 
-    String names[];
-    String locations[];
+    Firebase ref;
 
     DBAdapter myDb;
+    ListView listview;
 
     int[] imageIDs = {
             R.drawable.ic_launcher,
@@ -48,13 +53,14 @@ public class ActiveUserActivity extends AppCompatActivity {
         final TextView name = (TextView) findViewById(R.id.list_item_name_textview);
         final TextView location = (TextView) findViewById(R.id.list_item_location_textview);
 
-        ListView listview = (ListView) findViewById(R.id.listView);
+        listview = (ListView) findViewById(R.id.listView);
 
-        Firebase ref = new Firebase("https://projecttest.firebaseio.com/streams");
+        ref = new Firebase("https://projecttest.firebaseio.com/streams");
 
         //setup database access
         myDb = new DBAdapter(this);
         myDb.open();
+        //myDb.deleteAll();
 
         ref.limitToLast(5).addValueEventListener(new ValueEventListener() {
             @Override
@@ -74,7 +80,58 @@ public class ActiveUserActivity extends AppCompatActivity {
         int imageId = imageIDs[nextImageIndex];
         nextImageIndex = (nextImageIndex + 1) % imageIDs.length;
 
-        Cursor cursor = myDb.getAllRows();
+        final Cursor cursor = myDb.getAllRows();
+
+        //Map cursor to view
+        String[] fromFieldNames = new String[]{
+                DBAdapter.KEY_NAME,
+                DBAdapter.KEY_LOCATION
+        };
+        int[] toViewIds = new int[]{
+                R.id.list_item_name_textview,
+                R.id.list_item_location_textview
+        };
+
+        //To be removed.
+        //String[] fromFieldLocations = new String[]{};
+
+        SimpleCursorAdapter adapter = new SimpleCursorAdapter(this,R.layout.list_item_streams, cursor,fromFieldNames,toViewIds);
+
+        listview.setAdapter(adapter);
+
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), PlayStreamActivity.class);
+                String url;
+
+                if( cursor != null && cursor.moveToFirst() ){
+                    url = cursor.getString(cursor.getColumnIndex("url"));
+                    intent.putExtra("url", url);
+                    startActivity(intent);
+                    Log.i("URL",url);
+                }
+            }
+        });
+
+        //Button for adding new stream
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent mapIntent = new Intent(getApplicationContext(), AddNewStreamActivity.class);
+                startActivity(mapIntent);
+                //nackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+            }
+        });
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        final Cursor cursor = myDb.getAllRows();
 
         //Map cursor to view
         String[] fromFieldNames = new String[]{
@@ -92,16 +149,27 @@ public class ActiveUserActivity extends AppCompatActivity {
 
         listview.setAdapter(adapter);
 
-        //Button for adding new stream
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View view) {
-                Intent mapIntent = new Intent(getApplicationContext(), AddNewStreamActivity.class);
-                startActivity(mapIntent);
-                //nackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show();
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), PlayStreamActivity.class);
+                String url;
+
+                if( cursor != null && cursor.moveToFirst() ){
+                    url = cursor.getString(cursor.getColumnIndex("url"));
+                    intent.putExtra("url", url);
+                    startActivity(intent);
+                    Log.i("URL",url);
+                }
             }
         });
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        myDb.deleteAll();
+        super.onDestroy();
     }
 
     @Override

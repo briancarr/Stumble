@@ -34,16 +34,11 @@ public class MyService extends Service {
     Firebase fb = new Firebase("https://projecttest.firebaseio.com/locations");
 
     GeoFire geoFire = new GeoFire(fb);
-    Bundle extras;
+
     private int mId;
-    private String locationKey;
-
+    private String userID;
     boolean notificationDisplayed = false;
-
-    Stream stream;
-    String streamName = null;
-
-    Firebase ref = new Firebase("https://projecttest.firebaseio.com/streams");
+    private String streamUrl;
 
     public MyService() {
     }
@@ -72,8 +67,8 @@ public class MyService extends Service {
                             notificationDisplayed = true;
                             //key represents the user id used to create the location
                             //pass key to notification and use to look up stream entry.
-                            locationKey = key;
-                            getStreamInfo();
+                            userID = key;
+                            getStreamInfo();;
                         }
                         Log.i("Key Entered",location.toString());
                         Log.i("Key ",key);
@@ -142,16 +137,14 @@ public class MyService extends Service {
     }
 
 
-    public  void createNotification(){
-
-        getStreamInfo();
+    public  void createNotification(String url){
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.ic_launcher)
                         .setAutoCancel(true)
                         .setContentTitle("Stumble Stream")
-                        .setContentText(streamName);
+                        .setContentText(url);
 
 
         mBuilder.setDefaults(Notification.DEFAULT_SOUND);
@@ -161,8 +154,8 @@ public class MyService extends Service {
         //Creates an explicit intent for the streamActivity
         //Pass the URI for the stream
         Intent resultIntent = new Intent(this, PlayStreamActivity.class);
-        Log.i("Service ", locationKey);
-        resultIntent.putExtra("userID",locationKey);
+        Log.i("URL", url);
+        resultIntent.putExtra("url",url);
 
         resultIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
@@ -187,17 +180,28 @@ public class MyService extends Service {
     }
 
     private void getStreamInfo() {
-        ref.child(locationKey).addValueEventListener(new ValueEventListener() {
+
+        final Firebase _stream = new Firebase("https://projecttest.firebaseio.com/streams");
+        _stream.child(userID).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                stream = snapshot.getValue(Stream.class);
-                streamName = stream.getName().toString();
-                createNotification();
+                Stream stream = snapshot.getValue(Stream.class);
+                //System.out.println(stream.getUrl());
+                streamUrl = stream.getUrl().toString();
+                try {
+                    if (_stream.getAuth().toString() != userID) {
+                        return;
+                    } else {
+                        createNotification(streamUrl);
+                    }
+                }catch (NullPointerException npe){
+
+                }
+                //createNotification(streamUrl);
+
             }
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                Log.e("streams", "The read failed: " + firebaseError.getMessage());
-            }
+            @Override public void onCancelled(FirebaseError error) { }
         });
+
     }
 }

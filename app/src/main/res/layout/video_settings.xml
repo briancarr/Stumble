@@ -68,14 +68,14 @@
                 android:textColor="#ffffff"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="640x480, 30 fps, 1000 Kbps" />
+                android:text="1280x720, 30 fps, 500 Kbps" />
 
             <RadioButton
                 android:id="@+id/radio10"
                 android:textColor="#ffffff"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="1920x1080, 30 fps, 2000 Kbps" />
+                android:text="1920x1080, 30 fps, 400 Kbps" />
         </RadioGroup>
     </LinearLayout>
 
