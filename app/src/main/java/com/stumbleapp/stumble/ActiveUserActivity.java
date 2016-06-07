@@ -22,13 +22,6 @@ import com.stumbleapp.me.stumble.R;
 
 public class ActiveUserActivity extends AppCompatActivity {
 
-    //To be removed
-//    DatabaseHelper database;
-//    String Name;
-//    String location;
-//
-//    String names[];
-//    String locations[];
 
     Firebase ref;
 

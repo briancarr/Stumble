@@ -29,7 +29,7 @@ public class AddNewStreamActivity extends AppCompatActivity {
 
     EditText location;
     EditText name;
-    DatabaseHelper database;
+    //DatabaseHelper database;
     SQLiteDatabase db;
     String   mName;
     String  mLocation;
@@ -74,9 +74,9 @@ public class AddNewStreamActivity extends AppCompatActivity {
         //uncomment when login is reactivated
         final String userId = fb.getAuth().getUid();
 
-        baseDomain = "rtsp://192.168.2.5:1935/live/";
+        baseDomain = "rtsp://192.168.1.14:1935/live/";
 
-        database = new DatabaseHelper(this);
+        //database = new DatabaseHelper(this);
 
         location = (EditText) findViewById(R.id.location_editText);
         name = (EditText) findViewById(R.id.stream_name_editText);
